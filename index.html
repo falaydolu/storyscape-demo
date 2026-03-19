@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Storyscape | Archive</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --folder: #f2eee3; --ink: #1a1a1a; --texture: url('https://www.transparenttextures.com/patterns/cream-paper.png'); }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #d9d4c7; font-family: 'Space Mono', monospace; display: flex; align-items: center; justify-content: center; }
+        
+        .folder-container { position: relative; width: 92%; max-width: 380px; height: 85%; background: var(--folder); background-image: var(--texture); border-radius: 0 20px 20px 20px; box-shadow: 15px 15px 40px rgba(0,0,0,0.15); display: flex; flex-direction: column; align-items: center; padding: 40px 25px; box-sizing: border-box; transition: all 0.5s ease; }
+
+        /* Left Tab: Storyscape */
+        .left-tab { position: absolute; left: -35px; top: 40px; width: 35px; height: 160px; background: var(--folder); background-image: var(--texture); border-radius: 12px 0 0 12px; display: flex; align-items: center; justify-content: center; box-shadow: -5px 5px 15px rgba(0,0,0,0.05); }
+        .tab-text { transform: rotate(-90deg); white-space: nowrap; font-size: 14px; font-weight: 700; letter-spacing: 2px; color: var(--ink); text-transform: uppercase; }
+
+        /* Right Side Tabs (Appear after search) */
+        .right-tabs { position: absolute; right: -32px; top: 80px; display: flex; flex-direction: column; gap: 8px; opacity: 0; transition: opacity 0.5s ease; pointer-events: none; }
+        .story-tab { width: 32px; height: 90px; background: #e6e2d6; background-image: var(--texture); border: 1px solid rgba(0,0,0,0.08); border-radius: 0 12px 12px 0; display: flex; align-items: center; justify-content: center; cursor: pointer; writing-mode: vertical-rl; text-orientation: mixed; font-size: 11px; font-weight: 700; color: var(--ink); box-shadow: 3px 3px 10px rgba(0,0,0,0.05); }
+        .story-tab.active { background: #dcd8cc; width: 40px; box-shadow: 5px 5px 15px rgba(0,0,0,0.1); }
+
+        /* 4:3 Camera Frame */
+        #camera-frame { width: 100%; aspect-ratio: 3 / 4; background: #000; overflow: hidden; margin-bottom: 25px; border: 1px solid rgba(0,0,0,0.05); }
+        #camera-feed { width: 100%; height: 100%; object-fit: cover; }
+
+        /* Button: Black box, White text */
+        .find-btn { background: var(--ink); color: #fff; border: none; padding: 18px 45px; font-family: inherit; font-size: 14px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; cursor: pointer; }
+        
+        /* Preview UI (Page 2) */
+        #preview-box { margin-top: 5px; text-align: left; width: 100%; display: none; }
+        .teaser { font-size: 12px; line-height: 1.6; border-left: 3px solid var(--ink); padding-left: 12px; margin-bottom: 20px; }
+        .unfold-btn { background: transparent; color: var(--ink); border: 1.5px solid var(--ink); padding: 12px; font-family: inherit; font-size: 12px; font-weight: 700; text-transform: uppercase; cursor: pointer; width: 100%; }
+
+        .loading { display: none; margin-top: 20px; }
+        .spinner { width: 25px; height: 25px; border: 2px solid var(--ink); border-top-color: transparent; border-radius: 50%; animation: spin 1s infinite linear; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Activation state */
+        .active-state .right-tabs { opacity: 1; pointer-events: auto; }
+    </style>
+</head>
+<body>
+
+    <div id="archive-folder" class="folder-container">
+        <div class="left-tab"><div class="tab-text">Storyscape</div></div>
+
+        <div class="right-tabs" id="tabs-nav">
+            <div class="story-tab" onclick="loadEcho(1920, event)">1920s</div>
+            <div class="story-tab" onclick="loadEcho(1964, event)">1960s</div>
+            <div class="story-tab" onclick="loadEcho(2049, event)">2040s</div>
+        </div>
+
+        <div id="camera-frame"><video id="camera-feed" autoplay playsinline></video></div>
+
+        <button id="find-btn" class="find-btn" onclick="searchArchive()">Find Archive</button>
+        
+        <div id="loader" class="loading"><div class="spinner"></div></div>
+
+        <div id="preview-box">
+            <p id="echo-label" style="font-size: 10px; opacity: 0.5; margin-bottom: 8px; letter-spacing: 1px;"></p>
+            <div id="echo-text" class="teaser"></div>
+            <button class="unfold-btn" id="final-btn">Unfold Archive</button>
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('camera-feed');
+        navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}}).then(s=>{video.srcObject=s;});
+
+        function searchArchive() {
+            document.getElementById('find-btn').style.display = 'none';
+            document.getElementById('loader').style.display = 'block';
+
+            setTimeout(() => {
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('archive-folder').classList.add('active-state');
+                loadEcho(1920); 
+            }, 1500);
+        }
+
+        function loadEcho(year, e) {
+            document.getElementById('preview-box').style.display = 'block';
+            const data = {
+                1920: { label: "HISTORICAL / ARCHITECTURE", text: "You are the messenger for a secret society at Sather Gate. Follow the stone ornaments." },
+                1964: { label: "SOCIAL / REVOLUTION", text: "The speakers are ready. You are a journalist capturing the birth of the Free Speech Movement." },
+                2049: { label: "FICTION / ECO-RECLAMATION", text: "The library is gone, replaced by digital vines. You are a scout looking for the last server." }
+            };
+            document.getElementById('echo-label').innerText = data[year].label;
+            document.getElementById('echo-text').innerText = data[year].text;
+            
+            const tabs = document.querySelectorAll('.story-tab');
+            tabs.forEach(t => t.classList.remove('active'));
+            if(e) e.target.classList.add('active');
+            else tabs[0].classList.add('active');
+        }
+    </script>
+</body>
+</html>
